@@ -27,3 +27,6 @@ testpaths = ["tests"]
 filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
 ]
+[tool.ty.src]
+# tests 폴더는 타입 체크 제외
+exclude = ["tests/"]
