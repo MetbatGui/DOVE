@@ -9,7 +9,7 @@ from src.domain.portfolio.portfolio import Portfolio
 class TestPortfolioScenario:
     def setup_method(self):
         self.ticker = Ticker("005930", "삼성전자")
-        self.pf = Portfolio()
+        self.pf = Portfolio(initial_cash=Money.krw(100_000_000))  # 1억원 초기 자금
         
         # 통합 테스트용 데이터 기간 (2025-12-12 ~ 2025-12-26)
         start_date = "20251212"
@@ -48,7 +48,7 @@ class TestPortfolioScenario:
         price_2 = self.prices["20251215"]
         assert price_2 == 104800
         
-        self.pf.sell(self.ticker, Decimal(3))
+        self.pf.sell(self.ticker, Money.krw(price_2), Decimal(3))
         
         pos = self.pf.get_position(self.ticker)
         assert pos.quantity == Decimal(7)
@@ -100,7 +100,7 @@ class TestPortfolioScenario:
         price_5 = self.prices["20251226"]
         assert price_5 == 117000
         
-        self.pf.sell(self.ticker)
+        self.pf.sell(self.ticker, Money.krw(price_5))
         
         pos = self.pf.get_position(self.ticker)
         assert pos is None

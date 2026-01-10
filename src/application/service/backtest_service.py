@@ -23,12 +23,8 @@ class BacktestService:
         if not chart.candles:
             raise ValueError("No data found for the given range.")
 
-        # 2. 포트폴리오 초기화
-        # 주의: 현재 Portfolio 클래스는 '현금'을 명시적으로 관리하지 않는 단순 버전임.
-        # 따라서 여기서는 '가상의 현금'을 지역 변수로 관리하며 시뮬레이션함.
-        # 추후 Portfolio가 Cash를 내장하도록 리팩토링할 필요성이 있음.
-        portfolio = Portfolio()
-        current_cash = initial_capital
+        # 2. 포트폴리오 초기화 (현금 포함, 거래 비용 자동 처리)
+        portfolio = Portfolio(initial_capital)
         
         trade_logs: List[TradeLog] = []
         daily_equity_curve = {}
@@ -39,71 +35,80 @@ class BacktestService:
         # 3. 시뮬레이션 루프
         for i, candle in enumerate(chart.candles):
             date_str = candle.timestamp.strftime("%Y-%m-%d")
-            current_price = candle.close_price # 심플하게 종가 기준 매매 가정
+            current_price = candle.close_price  # 종가 기준 매매
             
             # 전략 분석
             signal = strategy.analyze(chart, i)
             
-            # 매매 실행 로직
+            # 매매 실행 로직 (거래 비용은 Portfolio가 자동 처리)
             if signal.type == SignalType.BUY:
-                # 매수 가능 금액 확인 (일단 전액 매수 시도 or 수량 지정)
-                # 시그널에 수량이 없으면 '가용 현금 범위 내 최대''로 가정
-                 if current_cash.amount > 0:
+                if portfolio.cash.amount > 0:
                     quantity_to_buy = signal.quantity
                     
                     if quantity_to_buy is None:
-                        # 수수료 고려 X, 단순 계산: 현금 / 주가
-                        quantity_to_buy = Decimal(int(current_cash.amount / current_price.amount))
+                        # 거래 비용을 고려하여 최대 매수 수량 계산
+                        # total_cost = price * quantity * (1 + 0.003)
+                        # quantity = cash / (price * 1.003)
+                        total_rate = Decimal(1) + Decimal("0.003")  # commission + slippage
+                        quantity_to_buy = Decimal(int(portfolio.cash.amount / (current_price.amount * total_rate)))
                     
                     if quantity_to_buy > 0:
-                        cost = current_price * quantity_to_buy
-                        if cost <= current_cash:
+                        try:
+                            # Portfolio.buy가 알아서 현금 확인 및 거래 비용 처리
                             portfolio.buy(ticker, quantity_to_buy, current_price)
-                            current_cash -= cost
+                            
+                            # 거래 비용 포함된 실제 차감 금액 계산 (로그용)
+                            stock_cost = current_price * quantity_to_buy
+                            transaction_fee = stock_cost * Decimal("0.003")
+                            total_cost = stock_cost + Money(transaction_fee.amount, current_price.currency)
                             
                             trade_logs.append(TradeLog(
                                 date=date_str,
                                 action="BUY",
                                 quantity=quantity_to_buy,
                                 price=current_price,
-                                amount=cost,
+                                amount=total_cost,
                                 reason=signal.reason
                             ))
+                        except ValueError:
+                            # 현금 부족 등으로 매수 실패 (무시)
+                            pass
 
             elif signal.type == SignalType.SELL:
-                # 보유 수량 확인
                 position = portfolio.get_position(ticker)
                 if position:
                     quantity_to_sell = signal.quantity
-                    # 수량 없으면 전량 매도
                     if quantity_to_sell is None:
                         quantity_to_sell = position.quantity
                     
-                    # 보유량보다 많이 팔 수 없음
                     if quantity_to_sell > position.quantity:
                         quantity_to_sell = position.quantity
 
                     if quantity_to_sell > 0:
-                        revenue = current_price * quantity_to_sell
-                        portfolio.sell(ticker, quantity_to_sell)
-                        current_cash += revenue
-                        
-                        trade_logs.append(TradeLog(
-                            date=date_str,
-                            action="SELL",
-                            quantity=quantity_to_sell,
-                            price=current_price,
-                            amount=revenue,
-                            reason=signal.reason
-                        ))
+                        try:
+                            # Portfolio.sell이 알아서 거래 비용 처리
+                            portfolio.sell(ticker, current_price, quantity_to_sell)
+                            
+                            # 거래 비용 차감된 실제 수령 금액 계산 (로그용)
+                            gross_revenue = current_price * quantity_to_sell
+                            transaction_fee = gross_revenue * Decimal("0.003")
+                            net_revenue = gross_revenue - Money(transaction_fee.amount, current_price.currency)
+                            
+                            trade_logs.append(TradeLog(
+                                date=date_str,
+                                action="SELL",
+                                quantity=quantity_to_sell,
+                                price=current_price,
+                                amount=net_revenue,
+                                reason=signal.reason
+                            ))
+                        except ValueError:
+                            # 수량 부족 등으로 매도 실패 (무시)
+                            pass
 
-            # 일별 자산 평가 (Equity = Cash + Stock Value)
-            position_value = Money.krw(0)
-            position = portfolio.get_position(ticker)
-            if position:
-                position_value = current_price * position.quantity
-            
-            total_equity = current_cash + position_value
+            # 일별 자산 평가 (Portfolio가 자동 계산)
+            current_prices = {ticker.code: current_price}
+            total_equity = portfolio.get_total_equity(current_prices)
             daily_equity_curve[date_str] = float(total_equity.amount)
             
             # MDD 계산
@@ -123,7 +128,7 @@ class BacktestService:
             total_return=total_return,
             final_equity=final_equity,
             initial_capital=initial_capital,
-            mdd=float(max_drawdown) * -1, # MDD는 음수로 표현
+            mdd=float(max_drawdown) * -1,  # MDD는 음수로 표현
             trade_logs=trade_logs,
             daily_equity_curve=daily_equity_curve
         )
