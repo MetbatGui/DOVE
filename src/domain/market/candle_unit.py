@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from pydantic import BaseModel, field_validator
 from enum import Enum, auto
 
 class UnitType(Enum):
@@ -9,8 +9,7 @@ class UnitType(Enum):
 
 from datetime import timedelta
 
-@dataclass(frozen=True)
-class CandleUnit:
+class CandleUnit(BaseModel):
     """
     캔들의 시간 단위를 나타내는 Value Object입니다.
     예: 1분, 5분, 1일, 1주 등
@@ -18,9 +17,16 @@ class CandleUnit:
     unit_type: UnitType
     value: int = 1
 
-    def __post_init__(self):
-        if self.value <= 0:
+    model_config = {
+        "frozen": True,
+    }
+
+    @field_validator('value')
+    @classmethod
+    def validate_value(cls, v: int) -> int:
+        if v <= 0:
             raise ValueError("Candle unit value must be positive")
+        return v
 
     def to_timedelta(self) -> timedelta:
         """단위를 timedelta로 변환합니다."""
@@ -37,19 +43,19 @@ class CandleUnit:
 
     @classmethod
     def minute(cls, value: int = 1) -> 'CandleUnit':
-        return cls(UnitType.MINUTE, value)
+        return cls(unit_type=UnitType.MINUTE, value=value)
 
     @classmethod
     def day(cls, value: int = 1) -> 'CandleUnit':
-        return cls(UnitType.DAY, value)
+        return cls(unit_type=UnitType.DAY, value=value)
 
     @classmethod
     def week(cls, value: int = 1) -> 'CandleUnit':
-        return cls(UnitType.WEEK, value)
+        return cls(unit_type=UnitType.WEEK, value=value)
 
     @classmethod
     def month(cls, value: int = 1) -> 'CandleUnit':
-        return cls(UnitType.MONTH, value)
+        return cls(unit_type=UnitType.MONTH, value=value)
 
     def __str__(self) -> str:
         if self.unit_type == UnitType.MINUTE:

@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 from src.domain.market.candle_unit import CandleUnit, UnitType
 
 class TestCandleUnit:
@@ -14,10 +15,10 @@ class TestCandleUnit:
 
     def test_validation(self):
         """유효하지 않은 값 검증 테스트"""
-        with pytest.raises(ValueError, match="positive"):
+        with pytest.raises(ValidationError):
             CandleUnit.minute(0)
         
-        with pytest.raises(ValueError, match="positive"):
+        with pytest.raises(ValidationError):
             CandleUnit.minute(-5)
 
     def test_equality(self):
