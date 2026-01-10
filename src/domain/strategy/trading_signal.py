@@ -1,32 +1,49 @@
-from enum import Enum, auto
-from dataclasses import dataclass
-from typing import Optional
+from enum import Enum
 from decimal import Decimal
-from src.domain.shared.money import Money
+from typing import Optional
+from pydantic import BaseModel
 
-class SignalType(Enum):
-    BUY = auto()
-    SELL = auto()
-    HOLD = auto()
+class SignalType(str, Enum):
+    """매매 신호 타입"""
+    BUY = "BUY"
+    SELL = "SELL"
+    HOLD = "HOLD"
 
-@dataclass(frozen=True)
-class TradingSignal:
+    def __str__(self):
+        return self.value
+
+class TradingSignal(BaseModel):
     """
-    전략(Strategy)이 생성하는 매매 신호.
+    매매 신호를 나타내는 DTO.
+    Pydantic을 사용하여 자동 타입 검증 지원.
     """
     type: SignalType
-    price: Optional[Money] = None  # 지정가 주문 시 필요, None이면 시장가(혹은 종가)
-    quantity: Optional[Decimal] = None # 주문 수량, None이면 기본 정책 따름 (ex: 전량 매수/매도)
-    reason: str = "" # 로깅용
+    quantity: Optional[Decimal] = None
+    reason: str = ""
+
+    model_config = {
+        "frozen": True,  # 불변성 유지
+    }
 
     @classmethod
-    def buy(cls, price: Optional[Money] = None, quantity: Optional[Decimal] = None, reason: str = "") -> 'TradingSignal':
-        return cls(SignalType.BUY, price, quantity, reason)
+    def buy(cls, quantity: Optional[Decimal] = None, reason: str = "") -> 'TradingSignal':
+        """매수 신호 생성"""
+        return cls(type=SignalType.BUY, quantity=quantity, reason=reason)
 
     @classmethod
-    def sell(cls, price: Optional[Money] = None, quantity: Optional[Decimal] = None, reason: str = "") -> 'TradingSignal':
-        return cls(SignalType.SELL, price, quantity, reason)
+    def sell(cls, quantity: Optional[Decimal] = None, reason: str = "") -> 'TradingSignal':
+        """매도 신호 생성"""
+        return cls(type=SignalType.SELL, quantity=quantity, reason=reason)
 
     @classmethod
     def hold(cls, reason: str = "") -> 'TradingSignal':
-        return cls(SignalType.HOLD, price=None, quantity=None, reason=reason)
+        """보유 신호 생성"""
+        return cls(type=SignalType.HOLD, quantity=None, reason=reason)
+
+    def __hash__(self) -> int:
+        """Pydantic BaseModel은 기본적으로 해시 불가능하므로 명시적 구현"""
+        return hash((self.type, self.quantity, self.reason))
+
+    def __str__(self) -> str:
+        qty_str = f"Qty={self.quantity}" if self.quantity else "Qty=All"
+        return f"Signal({self.type}, {qty_str}, Reason={self.reason})"
