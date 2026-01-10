@@ -84,7 +84,7 @@ class Portfolio:
         if position:
             position.increase(quantity, price)
         else:
-            self._positions[ticker.code] = Position(ticker, quantity, price)
+            self._positions[ticker.code] = Position(ticker=ticker, quantity=quantity, average_price=price)
 
     def sell(self, ticker: Ticker, price: Money, quantity: Optional[Decimal] = None):
         """

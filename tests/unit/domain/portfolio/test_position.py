@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 from decimal import Decimal
 from src.domain.market.ticker import Ticker
 from src.domain.shared.money import Money
@@ -10,16 +11,17 @@ class TestPosition:
 
     def test_init_validation(self):
         """초기 수량 검증"""
-        with pytest.raises(ValueError):
-            Position(self.ticker, Decimal(0), Money.krw(100))
+        # 0은 허용됨 (Pydantic ge=0) -> Portfolio에서 0이면 삭제 처리함
+        # Position(ticker=self.ticker, quantity=Decimal(0), average_price=Money.krw(100))
         
-        with pytest.raises(ValueError):
-            Position(self.ticker, Decimal(-1), Money.krw(100))
+        # 음수는 불가능
+        with pytest.raises(ValidationError):
+            Position(ticker=self.ticker, quantity=Decimal(-1), average_price=Money.krw(100))
 
     def test_increase_average_price(self):
         """매수 시 평단가 계산 검증"""
         # 초기: 10주 @ 10,000원 = 100,000원
-        pos = Position(self.ticker, Decimal(10), Money.krw(10000))
+        pos = Position(ticker=self.ticker, quantity=Decimal(10), average_price=Money.krw(10000))
         
         # 추가: 10주 @ 20,000원 = 200,000원
         # 총: 20주, 300,000원 => 평단 15,000원
@@ -30,7 +32,7 @@ class TestPosition:
 
     def test_decrease_quantity(self):
         """매도 시 수량만 감소하고 평단가는 유지"""
-        pos = Position(self.ticker, Decimal(10), Money.krw(10000))
+        pos = Position(ticker=self.ticker, quantity=Decimal(10), average_price=Money.krw(10000))
         
         pos.decrease(Decimal(3))
         
@@ -39,7 +41,7 @@ class TestPosition:
 
     def test_decrease_validation(self):
         """매도 수량 검증"""
-        pos = Position(self.ticker, Decimal(10), Money.krw(10000))
+        pos = Position(ticker=self.ticker, quantity=Decimal(10), average_price=Money.krw(10000))
         
         # 보유량 초과 매도 시도
         with pytest.raises(ValueError, match="Insufficient quantity"):
@@ -52,7 +54,7 @@ class TestPosition:
     def test_increase_decimal_quantity(self):
         """소수점 수량에 대한 평단가 계산 검증"""
         # 1.5주 @ 1000원 = 1500원
-        pos = Position(self.ticker, Decimal("1.5"), Money.krw(1000))
+        pos = Position(ticker=self.ticker, quantity=Decimal("1.5"), average_price=Money.krw(1000))
         
         # 0.5주 @ 2000원 = 1000원
         pos.increase(Decimal("0.5"), Money.krw(2000))
