@@ -37,10 +37,10 @@ class TestPyKrxDataProvider:
         # 주의: pykrx 데이터가 휴일 등으로 인해 start_date와 정확히 일치하지 않을 수 있음.
         # 따라서 특정 날짜를 찾아서 검증하는 것이 더 안전함.
         
-        target_candle = next((c for c in chart if c.timestamp.date() == date(2025, 12, 12)), None)
+        target_candle = next((c for c in chart.candles if c.timestamp.date() == date(2025, 12, 12)), None)
         assert target_candle is not None
         assert target_candle.close_price.amount == 108900
         
-        target_candle_last = next((c for c in chart if c.timestamp.date() == date(2025, 12, 26)), None)
+        target_candle_last = next((c for c in chart.candles if c.timestamp.date() == date(2025, 12, 26)), None)
         assert target_candle_last is not None
         assert target_candle_last.close_price.amount == 117000

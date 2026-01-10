@@ -1,10 +1,11 @@
 from typing import Dict, List, Optional
 from decimal import Decimal
+from pydantic import BaseModel, PrivateAttr, Field
 from src.domain.market.ticker import Ticker
 from src.domain.shared.money import Money
 from src.domain.portfolio.position import Position
 
-class Portfolio:
+class Portfolio(BaseModel):
     """
     여러 종목의 포지션과 현금을 관리하는 애그리거트 루트(Aggregate Root).
     
@@ -13,25 +14,22 @@ class Portfolio:
     - 매수/매도 시 거래 비용 자동 처리 (수수료 + 슬리피지)
     - 총 자산 평가 기능
     """
-    def __init__(
-        self, 
-        initial_cash: Money,
-        commission_rate: Decimal = Decimal("0.002"),  # 0.2% 수수료
-        slippage_rate: Decimal = Decimal("0.001")     # 0.1% 슬리피지
-    ):
-        """
-        Args:
-            initial_cash: 초기 현금 (예수금)
-            commission_rate: 거래 수수료율 (기본값: 0.2%)
-            slippage_rate: 슬리피지율 (기본값: 0.1%)
-        """
-        if commission_rate < 0 or slippage_rate < 0:
-            raise ValueError("Commission and slippage rates must be non-negative")
-        
+    initial_cash: Money
+    commission_rate: Decimal = Field(default=Decimal("0.002"), ge=0)
+    slippage_rate: Decimal = Field(default=Decimal("0.001"), ge=0)
+    
+    _cash: Money = PrivateAttr()
+    _positions: Dict[str, Position] = PrivateAttr(default_factory=dict)
+
+    model_config = {
+        "frozen": False,
+        "arbitrary_types_allowed": True,
+    }
+
+    def __init__(self, initial_cash: Money, commission_rate: Decimal = Decimal("0.002"), slippage_rate: Decimal = Decimal("0.001")):
+        super().__init__(initial_cash=initial_cash, commission_rate=commission_rate, slippage_rate=slippage_rate)
         self._cash = initial_cash
-        self._commission_rate = commission_rate
-        self._slippage_rate = slippage_rate
-        self._positions: Dict[str, Position] = {}
+        self._positions = {}
 
     @property
     def cash(self) -> Money:
@@ -65,7 +63,7 @@ class Portfolio:
         # 거래 비용 계산
         stock_cost = price * quantity
         transaction_fee = Money(
-            amount=stock_cost.amount * (self._commission_rate + self._slippage_rate),
+            amount=stock_cost.amount * (self.commission_rate + self.slippage_rate),
             currency=price.currency
         )
         total_cost = stock_cost + transaction_fee
@@ -117,7 +115,7 @@ class Portfolio:
         # 거래 비용 계산
         gross_revenue = price * quantity
         transaction_fee = Money(
-            amount=gross_revenue.amount * (self._commission_rate + self._slippage_rate),
+            amount=gross_revenue.amount * (self.commission_rate + self.slippage_rate),
             currency=price.currency
         )
         net_revenue = gross_revenue - transaction_fee

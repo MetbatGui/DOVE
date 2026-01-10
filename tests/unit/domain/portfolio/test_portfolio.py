@@ -125,7 +125,7 @@ class TestPortfolio:
     def test_transaction_cost_calculation(self):
         """거래 비용 정확성 테스트"""
         initial_cash = Money.krw(1_000_000)
-        pf = Portfolio(initial_cash)
+        pf = Portfolio(initial_cash=initial_cash)
         
         # 매수
         pf.buy(self.samsung, Decimal(10), Money.krw(10000))
