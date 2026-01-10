@@ -19,26 +19,26 @@ class TestCandleChart:
 
     def test_init_candle_chart(self):
         """차트 초기화 테스트"""
-        chart = CandleChart(self.ticker, self.unit)
+        chart = CandleChart(ticker=self.ticker, unit=self.unit)
         assert chart.ticker == self.ticker
         assert chart.unit == self.unit
         assert len(chart) == 0
 
     def test_add_candle_sorting(self):
         """캔들 추가 및 정렬 테스트"""
-        chart = CandleChart(self.ticker, self.unit)
+        chart = CandleChart(ticker=self.ticker, unit=self.unit)
         # 순서 섞어서 추가
         chart.add_candle(self.candle2)
         chart.add_candle(self.candle1)
 
         assert len(chart) == 2
         # 시간순 정렬 확인
-        assert chart[0] == self.candle1
-        assert chart[1] == self.candle2
+        assert chart.candles[0] == self.candle1
+        assert chart.candles[1] == self.candle2
 
     def test_duplicate_candle_error(self):
         """중복 시간 캔들 추가 시 에러 테스트"""
-        chart = CandleChart(self.ticker, self.unit, [self.candle1])
+        chart = CandleChart(ticker=self.ticker, unit=self.unit, candles=[self.candle1])
         
         # 동일한 시간의 캔들(내용을 조금 바꿔서)
         duplicate_candle = Candle(open_price=self.krw_1000, high_price=self.krw_1000, low_price=self.krw_1000, close_price=self.krw_1000, volume=300, timestamp=self.timestamp1)
@@ -48,7 +48,7 @@ class TestCandleChart:
 
     def test_get_latest_candle(self):
         """최신 캔들 조회 테스트"""
-        chart = CandleChart(self.ticker, self.unit)
+        chart = CandleChart(ticker=self.ticker, unit=self.unit)
         assert chart.get_latest_candle() is None
 
         chart.add_candle(self.candle1)
@@ -59,11 +59,11 @@ class TestCandleChart:
 
     def test_getitem_and_iter(self):
         """리스트처럼 접근 테스트"""
-        chart = CandleChart(self.ticker, self.unit, [self.candle1, self.candle2])
+        chart = CandleChart(ticker=self.ticker, unit=self.unit, candles=[self.candle1, self.candle2])
         
-        assert chart[0] == self.candle1
-        assert chart[-1] == self.candle2
+        assert chart.candles[0] == self.candle1
+        assert chart.candles[-1] == self.candle2
         
-        candles = [c for c in chart]
+        candles = [c for c in chart.candles]
         assert len(candles) == 2
         assert candles[0] == self.candle1

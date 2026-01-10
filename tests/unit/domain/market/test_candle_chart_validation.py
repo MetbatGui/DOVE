@@ -20,7 +20,7 @@ class TestCandleChartValidation:
     def test_validate_empty_chart(self):
         """빈 차트 검증"""
         chart = CandleChart(self.ticker, self.unit)
-        messages = chart.validate()
+        messages = chart.verify()
         assert len(messages) == 1
         assert "empty" in messages[0]
 
@@ -32,7 +32,7 @@ class TestCandleChartValidation:
         chart.add_candle(self._create_candle(2)) # 화요일
         
         # 1일 간격이므로 정상
-        messages = chart.validate()
+        messages = chart.verify()
         assert len(messages) == 0
 
     def test_validate_gap_detection(self):
@@ -41,7 +41,7 @@ class TestCandleChartValidation:
         chart.add_candle(self._create_candle(0)) 
         chart.add_candle(self._create_candle(10)) # 10일 후 (Gap 발생해야 함)
 
-        messages = chart.validate()
+        messages = chart.verify()
         assert len(messages) == 1
         assert "[Gap]" in messages[0]
         assert "Missing data" in messages[0]
@@ -61,6 +61,6 @@ class TestCandleChartValidation:
         # _candles는 private이지만 테스트를 위해 접근
         chart._candles[0], chart._candles[1] = chart._candles[1], chart._candles[0]
         
-        messages = chart.validate()
+        messages = chart.verify()
         assert len(messages) > 0
         assert "[Order/Duplicate]" in messages[0]
