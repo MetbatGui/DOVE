@@ -52,7 +52,7 @@ def test_money_comparison():
 def test_different_currency_error():
     """다른 통화 연산 시 에러 발생 테스트"""
     krw = Money.krw(1000)
-    usd = Money(Decimal("10"), Currency.USD)
+    usd = Money(amount=Decimal("10"), currency=Currency.USD)
     
     with pytest.raises(ValueError):
         krw + usd

@@ -61,7 +61,7 @@ class Candle:
         total_amount = (self.open_price.amount + self.high_price.amount + 
                        self.low_price.amount + self.close_price.amount)
         # Money 객체의 __mul__ 로직 활용 (Decimal 처리는 Money 내부에서 담당)
-        return Money(total_amount / 4, self.open_price.currency)
+        return Money(amount=total_amount / 4, currency=self.open_price.currency)
 
     def __str__(self) -> str:
         return (f"Candle(Time={self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}, "

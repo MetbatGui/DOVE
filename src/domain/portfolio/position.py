@@ -49,7 +49,7 @@ class Position:
         # 평단가 재계산
         # Money 나누기 Decimal 지원 필요 (Money 클래스 확인 필요, 만약 지원 안하면 amount로 계산)
         # Money / Decimal 연산 지원 가정하거나 amount로 계산 후 새 Money 생성
-        self._average_price = Money(total_value.amount / self._quantity, self._average_price.currency)
+        self._average_price = Money(amount=total_value.amount / self._quantity, currency=self._average_price.currency)
 
     def decrease(self, quantity: Decimal):
         """

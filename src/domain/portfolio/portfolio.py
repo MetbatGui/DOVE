@@ -65,8 +65,8 @@ class Portfolio:
         # 거래 비용 계산
         stock_cost = price * quantity
         transaction_fee = Money(
-            stock_cost.amount * (self._commission_rate + self._slippage_rate),
-            price.currency
+            amount=stock_cost.amount * (self._commission_rate + self._slippage_rate),
+            currency=price.currency
         )
         total_cost = stock_cost + transaction_fee
         
@@ -117,8 +117,8 @@ class Portfolio:
         # 거래 비용 계산
         gross_revenue = price * quantity
         transaction_fee = Money(
-            gross_revenue.amount * (self._commission_rate + self._slippage_rate),
-            price.currency
+            amount=gross_revenue.amount * (self._commission_rate + self._slippage_rate),
+            currency=price.currency
         )
         net_revenue = gross_revenue - transaction_fee
         
@@ -142,7 +142,7 @@ class Portfolio:
         Returns:
             Money: 총 자산 가치
         """
-        position_value = Money(Decimal(0), self._cash.currency)
+        position_value = Money(amount=Decimal(0), currency=self._cash.currency)
         
         for position in self.positions:
             current_price = current_prices.get(position.ticker.code)

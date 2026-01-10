@@ -36,7 +36,7 @@ class MovingAverage(Indicator):
             
         # 첫 번째 평균 추가
         currency = candles[0].close_price.currency
-        results.append(Money(current_sum / self.period, currency))
+        results.append(Money(amount=current_sum / self.period, currency=currency))
 
         # 슬라이딩 윈도우로 나머지 계산
         for i in range(self.period, len(candles)):
@@ -45,6 +45,6 @@ class MovingAverage(Indicator):
             current_sum -= candles[remove_idx].close_price.amount
             current_sum += candles[i].close_price.amount
             
-            results.append(Money(current_sum / self.period, currency))
+            results.append(Money(amount=current_sum / self.period, currency=currency))
 
         return results

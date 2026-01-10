@@ -195,7 +195,7 @@ class BacktestService:
         """매수 거래 로그 생성"""
         stock_cost = price * quantity
         transaction_fee = stock_cost * self.TRANSACTION_COST_RATE
-        total_cost = stock_cost + Money(transaction_fee.amount, price.currency)
+        total_cost = stock_cost + Money(amount=transaction_fee.amount, currency=price.currency)
         
         return TradeLog(
             date=date_str,
@@ -216,7 +216,7 @@ class BacktestService:
         """매도 거래 로그 생성"""
         gross_revenue = price * quantity
         transaction_fee = gross_revenue * self.TRANSACTION_COST_RATE
-        net_revenue = gross_revenue - Money(transaction_fee.amount, price.currency)
+        net_revenue = gross_revenue - Money(amount=transaction_fee.amount, currency=price.currency)
         
         return TradeLog(
             date=date_str,

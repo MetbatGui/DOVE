@@ -60,7 +60,7 @@ class TestCandle:
 
     def test_validation_currency_mismatch(self):
         """서로 다른 통화 사용 시 에러 발생 테스트"""
-        usd_money = Money(Decimal("10.0"), Currency.USD)
+        usd_money = Money(amount=Decimal("10.0"), currency=Currency.USD)
         with pytest.raises(ValueError, match="same currency"):
             Candle(
                 open_price=self.krw_1000,

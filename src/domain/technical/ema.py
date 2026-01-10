@@ -26,7 +26,7 @@ class EMA(Indicator):
         initial_sma = initial_sum / self.period
         
         currency = candles[0].close_price.currency
-        results.append(Money(initial_sma, currency))
+        results.append(Money(amount=initial_sma, currency=currency))
 
         # 2. EMA 계산
         # Multiplier: k = 2 / (N + 1)
@@ -39,7 +39,7 @@ class EMA(Indicator):
             # EMA = (Close - Prev_EMA) * k + Prev_EMA
             #     = Close * k + Prev_EMA * (1 - k)
             current_ema = (close * k) + (prev_ema * (Decimal(1) - k))
-            results.append(Money(current_ema, currency))
+            results.append(Money(amount=current_ema, currency=currency))
             prev_ema = current_ema
 
         return results
