@@ -42,11 +42,22 @@ class TestPortfolio:
         assert pos.quantity == Decimal(6)
         assert pos.average_price == Money.krw(50000)
 
-    def test_sell_full(self):
-        """전량 매도(포지션 정리) 테스트"""
+    def test_sell_full_explicit(self):
+        """명시적 수량 지정 전량 매도 테스트"""
         self.pf.buy(self.samsung, Decimal(10), Money.krw(50000))
         
         self.pf.sell(self.samsung, Decimal(10))
+        
+        pos = self.pf.get_position(self.samsung)
+        assert pos is None
+        assert len(self.pf.positions) == 0
+
+    def test_sell_full_none(self):
+        """None 수량(기본값)으로 전량 매도 테스트"""
+        self.pf.buy(self.samsung, Decimal(10), Money.krw(50000))
+        
+        # quantity 인자 생략 시 전량 매도
+        self.pf.sell(self.samsung)
         
         pos = self.pf.get_position(self.samsung)
         assert pos is None

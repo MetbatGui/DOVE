@@ -35,16 +35,21 @@ class Portfolio:
         else:
             self._positions[ticker.code] = Position(ticker, quantity, price)
 
-    def sell(self, ticker: Ticker, quantity: Decimal):
+    def sell(self, ticker: Ticker, quantity: Optional[Decimal] = None):
         """
         매도: 수량 차감. 전량 매도 시 포트폴리오에서 제거.
+        quantity가 None이면 전량 매도.
         """
-        if quantity <= 0:
-            raise ValueError("Quantity must be positive")
-
         position = self.get_position(ticker)
         if not position:
             raise ValueError(f"Position not found for ticker: {ticker.code}")
+
+        # None이면 전량 매도
+        if quantity is None:
+            quantity = position.quantity
+        
+        if quantity <= 0:
+            raise ValueError("Quantity must be positive")
 
         position.decrease(quantity)
         
