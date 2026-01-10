@@ -24,3 +24,6 @@ dev = ["ruff>=0.14.10", "ty>=0.0.10"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+filterwarnings = [
+    "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+]
