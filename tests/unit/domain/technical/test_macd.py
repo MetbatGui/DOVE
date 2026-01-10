@@ -18,8 +18,12 @@ class TestMACD:
         chart = CandleChart(self.ticker, self.unit)
         for i, price in enumerate(prices):
             c = Candle(
-                Money.krw(price), Money.krw(price), Money.krw(price), Money.krw(price), 100,
-                self.base_time + timedelta(days=i)
+                open_price=Money.krw(price),
+                high_price=Money.krw(price),
+                low_price=Money.krw(price),
+                close_price=Money.krw(price),
+                volume=100,
+                timestamp=self.base_time + timedelta(days=i)
             )
             chart.add_candle(c)
         return chart

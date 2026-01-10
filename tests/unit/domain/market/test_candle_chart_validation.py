@@ -14,9 +14,7 @@ class TestCandleChartValidation:
         self.base_time = datetime(2023, 1, 1, 9, 0)
     
     def _create_candle(self, time_offset_days: int) -> Candle:
-        return Candle(
-            self.krw_1000, self.krw_1000, self.krw_1000, self.krw_1000, 100,
-            self.base_time + timedelta(days=time_offset_days)
+        return Candle(open_price=self.krw_1000, high_price=self.krw_1000, low_price=self.krw_1000, close_price=self.krw_1000, volume=100, timestamp=self.base_time + timedelta(days=time_offset_days)
         )
 
     def test_validate_empty_chart(self):

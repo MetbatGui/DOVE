@@ -14,8 +14,8 @@ class TestCandleChart:
         self.timestamp1 = datetime(2023, 1, 1, 9, 0)
         self.timestamp2 = datetime(2023, 1, 1, 9, 5)
         
-        self.candle1 = Candle(self.krw_1000, self.krw_1000, self.krw_1000, self.krw_1000, 100, self.timestamp1)
-        self.candle2 = Candle(self.krw_1000, self.krw_1000, self.krw_1000, self.krw_1000, 200, self.timestamp2)
+        self.candle1 = Candle(open_price=self.krw_1000, high_price=self.krw_1000, low_price=self.krw_1000, close_price=self.krw_1000, volume=100, timestamp=self.timestamp1)
+        self.candle2 = Candle(open_price=self.krw_1000, high_price=self.krw_1000, low_price=self.krw_1000, close_price=self.krw_1000, volume=200, timestamp=self.timestamp2)
 
     def test_init_candle_chart(self):
         """차트 초기화 테스트"""
@@ -41,7 +41,7 @@ class TestCandleChart:
         chart = CandleChart(self.ticker, self.unit, [self.candle1])
         
         # 동일한 시간의 캔들(내용을 조금 바꿔서)
-        duplicate_candle = Candle(self.krw_1000, self.krw_1000, self.krw_1000, self.krw_1000, 300, self.timestamp1)
+        duplicate_candle = Candle(open_price=self.krw_1000, high_price=self.krw_1000, low_price=self.krw_1000, close_price=self.krw_1000, volume=300, timestamp=self.timestamp1)
         
         with pytest.raises(ValueError, match="already exists"):
             chart.add_candle(duplicate_candle)

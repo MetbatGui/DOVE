@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.domain.market.ticker import Ticker
 from src.domain.market.candle_unit import CandleUnit
 from src.domain.market.candle import Candle
@@ -11,16 +11,23 @@ class TestMovingAverage:
     def setup_method(self):
         self.ticker = Ticker(code="005930", name="삼성전자")
         self.unit = CandleUnit.minute(5)
-        self.chart = CandleChart(self.ticker, self.unit)
-        
-        # 테스트용 데이터: 1000, 2000, 3000, 4000, 5000 ...
-        base_time = datetime(2023, 1, 1, 9, 0)
+        self.base_time = datetime(2023, 1, 1, 9, 0)
         self.prices = [1000, 2000, 3000, 4000, 5000]
-        for i, price in enumerate(self.prices):
-            money = Money.krw(price)
-            candle = Candle(money, money, money, money, 100, 
-                          datetime.fromtimestamp(base_time.timestamp() + i * 300))
-            self.chart.add_candle(candle)
+        self.chart = self._create_chart(self.prices)
+        
+    def _create_chart(self, prices: list[int]) -> CandleChart:
+        chart = CandleChart(self.ticker, self.unit)
+        for i, price in enumerate(prices):
+            candle = Candle(
+                open_price=Money.krw(price),
+                high_price=Money.krw(price),
+                low_price=Money.krw(price),
+                close_price=Money.krw(price),
+                volume=100,
+                timestamp=self.base_time + timedelta(days=i)
+            )
+            chart.add_candle(candle)
+        return chart
 
     def test_init_validation(self):
         """초기화 값 검증"""
