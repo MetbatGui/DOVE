@@ -1,5 +1,6 @@
 from typing import List, Optional, Union, Iterator
 from bisect import insort
+from datetime import timedelta
 from src.domain.market.ticker import Ticker
 from src.domain.market.candle_unit import CandleUnit
 from src.domain.market.candle import Candle
@@ -57,3 +58,38 @@ class CandleChart:
 
     def __iter__(self) -> Iterator[Candle]:
         return iter(self._candles)
+
+    def validate(self) -> List[str]:
+        """
+        차트 데이터의 무결성을 검증합니다.
+        
+        Returns:
+            발견된 문제점들의 리스트 (비어있으면 정상)
+        """
+        messages = []
+        if not self._candles:
+            messages.append("Chart is empty")
+            return messages
+
+        unit_delta = self.unit.to_timedelta()
+        # Gap 허용 오차: 기본 단위의 3배 + 주말(2일) 고려
+        # 예: 일봉이면 (1일*3 + 2일) = 5일 이상 차이나면 Gap으로 간주
+        # 분봉이면 (5분*3) = 15분 이상 차이나면 Gap으로 간주
+        gap_threshold = unit_delta * 3 + timedelta(days=2)
+
+        for i in range(len(self._candles) - 1):
+            curr = self._candles[i]
+            next_c = self._candles[i+1]
+
+            # 1. 정렬 및 중복 검사
+            if curr.timestamp >= next_c.timestamp:
+                messages.append(f"[Order/Duplicate] Index {i}: {curr.timestamp} >= {next_c.timestamp}")
+                continue
+
+            # 2. Gap 분석 (연속성)
+            # 단순히 시간 차이가 너무 크면 알림
+            time_diff = next_c.timestamp - curr.timestamp
+            if time_diff > gap_threshold:
+                 messages.append(f"[Gap] Index {i} -> {i+1}: Missing data between {curr.timestamp} and {next_c.timestamp} (Diff: {time_diff})")
+
+        return messages

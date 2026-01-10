@@ -7,6 +7,8 @@ class UnitType(Enum):
     WEEK = auto()
     MONTH = auto()
 
+from datetime import timedelta
+
 @dataclass(frozen=True)
 class CandleUnit:
     """
@@ -19,6 +21,19 @@ class CandleUnit:
     def __post_init__(self):
         if self.value <= 0:
             raise ValueError("Candle unit value must be positive")
+
+    def to_timedelta(self) -> timedelta:
+        """단위를 timedelta로 변환합니다."""
+        if self.unit_type == UnitType.MINUTE:
+            return timedelta(minutes=self.value)
+        elif self.unit_type == UnitType.DAY:
+            return timedelta(days=self.value)
+        elif self.unit_type == UnitType.WEEK:
+            return timedelta(weeks=self.value)
+        elif self.unit_type == UnitType.MONTH:
+            # 월 단위는 가변적이므로 근사치(30일) 사용 혹은 검증 시 주의 필요
+            return timedelta(days=30 * self.value)
+        return timedelta(0)
 
     @classmethod
     def minute(cls, value: int = 1) -> 'CandleUnit':
