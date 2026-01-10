@@ -1,18 +1,23 @@
 from typing import List, Optional
+from pydantic import BaseModel, field_validator
 from decimal import Decimal
 from src.domain.technical.indicator import Indicator
 from src.domain.market.candle_chart import CandleChart
 from src.domain.shared.money import Money
 
-class MovingAverage(Indicator):
+class MovingAverage(BaseModel, Indicator):
     """
     단순 이동평균(Simple Moving Average)을 계산하는 지표입니다.
     종가(Close Price)를 기준으로 계산합니다.
     """
-    def __init__(self, period: int):
-        if period <= 0:
+    period: int
+
+    @field_validator('period')
+    @classmethod
+    def validate_period(cls, v: int) -> int:
+        if v <= 0:
             raise ValueError("Period must be positive")
-        self.period = period
+        return v
 
     def calculate(self, chart: CandleChart) -> List[Optional[Money]]:
         """

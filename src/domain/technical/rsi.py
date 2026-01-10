@@ -1,17 +1,23 @@
 from typing import List, Optional
+from pydantic import BaseModel, field_validator
 from decimal import Decimal
 from src.domain.technical.indicator import Indicator
 from src.domain.market.candle_chart import CandleChart
 
-class RSI(Indicator):
+class RSI(BaseModel, Indicator):
     """
     RSI (Relative Strength Index) 지표 구현체
     Wilder's Smoothing 방식을 사용하여 계산합니다.
+    Pydantic을 사용하여 설정 값 검증.
     """
-    def __init__(self, period: int = 14):
-        if period < 1:
+    period: int = 14
+
+    @field_validator('period')
+    @classmethod
+    def validate_period(cls, v: int) -> int:
+        if v < 1:
             raise ValueError("Period must be at least 1")
-        self.period = period
+        return v
 
     def calculate(self, chart: CandleChart) -> List[Optional[float]]:
         candles = chart.candles

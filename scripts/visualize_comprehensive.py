@@ -53,15 +53,15 @@ def main():
     # MA
     # Money.amount는 Decimal이므로 float로 변환 필요
     # None은 float('nan')으로 변환하여 mplfinance가 처리하도록 함
-    ma5 = [float(v.amount) if v else float('nan') for v in MovingAverage(5).calculate(chart)]
-    ma20 = [float(v.amount) if v else float('nan') for v in MovingAverage(20).calculate(chart)]
-    ma60 = [float(v.amount) if v else float('nan') for v in MovingAverage(60).calculate(chart)]
+    ma5 = [float(v.amount) if v else float('nan') for v in MovingAverage(period=5).calculate(chart)]
+    ma20 = [float(v.amount) if v else float('nan') for v in MovingAverage(period=20).calculate(chart)]
+    ma60 = [float(v.amount) if v else float('nan') for v in MovingAverage(period=60).calculate(chart)]
     
     # RSI (이미 float or None)
-    rsi = [v if v is not None else float('nan') for v in RSI(14).calculate(chart)]
+    rsi = [v if v is not None else float('nan') for v in RSI(period=14).calculate(chart)]
     
     # MACD
-    macd_res = MACD(12, 26, 9).calculate(chart)
+    macd_res = MACD(fast_period=12, slow_period=26, signal_period=9).calculate(chart)
     macd = [float(r['macd']) if r['macd'] is not None else float('nan') for r in macd_res]
     signal = [float(r['signal']) if r['signal'] is not None else float('nan') for r in macd_res]
     hist = [float(r['histogram']) if r['histogram'] is not None else 0.0 for r in macd_res]

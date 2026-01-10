@@ -1,17 +1,22 @@
 from typing import List, Optional
+from pydantic import BaseModel, field_validator
 from decimal import Decimal
 from src.domain.technical.indicator import Indicator
 from src.domain.market.candle_chart import CandleChart
 from src.domain.shared.money import Money
 
-class EMA(Indicator):
+class EMA(BaseModel, Indicator):
     """
     EMA (Exponential Moving Average) 지수 이동평균 지표
     """
-    def __init__(self, period: int = 12):
-        if period < 1:
+    period: int = 12
+
+    @field_validator('period')
+    @classmethod
+    def validate_period(cls, v: int) -> int:
+        if v < 1:
             raise ValueError("Period must be at least 1")
-        self.period = period
+        return v
 
     def calculate(self, chart: CandleChart) -> List[Optional[Money]]:
         candles = chart.candles

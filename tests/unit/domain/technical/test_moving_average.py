@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 from datetime import datetime, timedelta
 from src.domain.market.ticker import Ticker
 from src.domain.market.candle_unit import CandleUnit
@@ -31,10 +32,10 @@ class TestMovingAverage:
 
     def test_init_validation(self):
         """초기화 값 검증"""
-        with pytest.raises(ValueError):
-            MovingAverage(0)
-        with pytest.raises(ValueError):
-            MovingAverage(-5)
+        with pytest.raises(ValidationError):
+            MovingAverage(period=0)
+        with pytest.raises(ValidationError):
+            MovingAverage(period=-5)
 
     def test_calculate_sma_basic(self):
         """기본적인 SMA 계산 (기간 3)"""

@@ -1,22 +1,30 @@
 from typing import List, Dict, Optional
+from pydantic import BaseModel, model_validator, PrivateAttr
 from src.domain.technical.indicator import Indicator
 from src.domain.market.candle_chart import CandleChart
 from src.domain.technical.ema import EMA
 
-class MACD(Indicator):
+class MACD(BaseModel, Indicator):
     """
     MACD (Moving Average Convergence Divergence) 지표
+    Pydantic을 사용하여 설정 검증.
     """
-    def __init__(self, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9):
-        if fast_period >= slow_period:
+    fast_period: int = 12
+    slow_period: int = 26
+    signal_period: int = 9
+
+    _fast_ema: EMA = PrivateAttr()
+    _slow_ema: EMA = PrivateAttr()
+
+    def model_post_init(self, __context):
+        self._fast_ema = EMA(period=self.fast_period)
+        self._slow_ema = EMA(period=self.slow_period)
+
+    @model_validator(mode='after')
+    def validate_periods(self):
+        if self.fast_period >= self.slow_period:
             raise ValueError("Fast period must be less than slow period")
-        
-        self.fast_period = fast_period
-        self.slow_period = slow_period
-        self.signal_period = signal_period
-        
-        self.fast_ema = EMA(fast_period)
-        self.slow_ema = EMA(slow_period)
+        return self
 
     def calculate(self, chart: CandleChart) -> List[Dict[str, Optional[float]]]:
         """
@@ -31,8 +39,8 @@ class MACD(Indicator):
             return [{'macd': None, 'signal': None, 'histogram': None}] * len(candles)
 
         # 1. Fast, Slow EMA 계산
-        fast_values = self.fast_ema.calculate(chart)
-        slow_values = self.slow_ema.calculate(chart)
+        fast_values = self._fast_ema.calculate(chart)
+        slow_values = self._slow_ema.calculate(chart)
         
         results: List[Dict[str, Optional[float]]] = []
         macd_line_values = []
