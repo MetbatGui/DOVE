@@ -6,7 +6,7 @@ from src.domain.portfolio.position import Position
 
 class TestPosition:
     def setup_method(self):
-        self.ticker = Ticker("005930", "삼성전자")
+        self.ticker = Ticker(code="005930", name="삼성전자")
 
     def test_init_validation(self):
         """초기 수량 검증"""

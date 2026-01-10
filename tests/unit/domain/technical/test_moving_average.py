@@ -9,7 +9,7 @@ from src.domain.technical.moving_average import MovingAverage
 
 class TestMovingAverage:
     def setup_method(self):
-        self.ticker = Ticker("005930", "삼성전자")
+        self.ticker = Ticker(code="005930", name="삼성전자")
         self.unit = CandleUnit.minute(5)
         self.chart = CandleChart(self.ticker, self.unit)
         

@@ -34,7 +34,7 @@ def main():
     }, inplace=True)
     
     # 2. 도메인 객체로 변환하여 지표 계산 (로직 검증용)
-    chart = CandleChart(Ticker(ticker_code, ticker_name), CandleUnit.day())
+    chart = CandleChart(Ticker(code=ticker_code, name=ticker_name), CandleUnit.day())
     
     for date, row in df.iterrows():
         candle = Candle(

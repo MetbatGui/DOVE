@@ -23,7 +23,7 @@ class TestBacktestService:
     def setup_method(self):
         self.provider = PyKrxDataProvider()
         self.service = BacktestService(self.provider)
-        self.ticker = Ticker("005930", "삼성전자")
+        self.ticker = Ticker(code="005930", name="삼성전자")
         self.start_date = date(2025, 1, 1)
         self.end_date = date(2025, 12, 31) # 2025년 1년치
         self.initial_capital = Money.krw(10_000_000) # 1000만원

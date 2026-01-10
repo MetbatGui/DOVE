@@ -10,7 +10,7 @@ from src.domain.technical.ema import EMA
 
 class TestEMA:
     def setup_method(self):
-        self.ticker = Ticker("005930", "삼성전자")
+        self.ticker = Ticker(code="005930", name="삼성전자")
         self.unit = CandleUnit.day()
         self.base_time = datetime(2023, 1, 1, 9, 0)
 

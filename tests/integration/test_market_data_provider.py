@@ -7,7 +7,7 @@ from src.domain.market.candle_chart import CandleChart
 class TestPyKrxDataProvider:
     def setup_method(self):
         self.provider = PyKrxDataProvider()
-        self.ticker = Ticker("005930", "삼성전자")
+        self.ticker = Ticker(code="005930", name="삼성전자")
 
     def test_get_ohlcv_returns_candle_chart(self):
         """실제 데이터 조회 및 CandleChart 변환 검증"""

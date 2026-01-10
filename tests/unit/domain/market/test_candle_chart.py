@@ -8,7 +8,7 @@ from src.domain.shared.money import Money
 
 class TestCandleChart:
     def setup_method(self):
-        self.ticker = Ticker("005930", "삼성전자")
+        self.ticker = Ticker(code="005930", name="삼성전자")
         self.unit = CandleUnit.minute(5)
         self.krw_1000 = Money.krw(1000)
         self.timestamp1 = datetime(2023, 1, 1, 9, 0)

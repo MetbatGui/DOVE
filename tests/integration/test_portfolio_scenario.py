@@ -8,7 +8,7 @@ from src.domain.portfolio.portfolio import Portfolio
 
 class TestPortfolioScenario:
     def setup_method(self):
-        self.ticker = Ticker("005930", "삼성전자")
+        self.ticker = Ticker(code="005930", name="삼성전자")
         self.pf = Portfolio(initial_cash=Money.krw(100_000_000))  # 1억원 초기 자금
         
         # 통합 테스트용 데이터 기간 (2025-12-12 ~ 2025-12-26)

@@ -7,8 +7,8 @@ from src.domain.portfolio.portfolio import Portfolio
 class TestPortfolio:
     def setup_method(self):
         self.pf = Portfolio(initial_cash=Money.krw(10_000_000))  # 1천만원 초기 자금
-        self.samsung = Ticker("005930", "삼성전자")
-        self.sk = Ticker("000660", "SK하이닉스")
+        self.samsung = Ticker(code="005930", name="삼성전자")
+        self.sk = Ticker(code="000660", name="SK하이닉스")
 
     def test_initial_cash(self):
         """초기 현금 확인"""
