@@ -2,6 +2,7 @@ from enum import Enum
 from decimal import Decimal
 from typing import Optional
 from pydantic import BaseModel
+from src.domain.market.ticker import Ticker
 
 class SignalType(str, Enum):
     """매매 신호 타입"""
@@ -18,6 +19,7 @@ class TradingSignal(BaseModel):
     Pydantic을 사용하여 자동 타입 검증 지원.
     """
     type: SignalType
+    ticker: Optional[Ticker] = None
     quantity: Optional[Decimal] = None
     reason: str = ""
 

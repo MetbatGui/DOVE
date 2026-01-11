@@ -1,7 +1,7 @@
 from typing import List, Optional, Union, Iterator
 from pydantic import BaseModel, PrivateAttr
 from bisect import insort
-from datetime import timedelta
+from datetime import timedelta, date
 from src.domain.market.ticker import Ticker
 from src.domain.market.candle_unit import CandleUnit
 from src.domain.market.candle import Candle
@@ -88,3 +88,24 @@ class CandleChart(BaseModel):
                  messages.append(f"[Gap] Index {i} -> {i+1}: Missing data between {curr.timestamp} and {next_c.timestamp} (Diff: {time_diff})")
 
         return messages
+
+    def find_index_by_date(self, target_date: date) -> int:
+        """
+        특정 날짜에 해당하는 캔들의 인덱스를 반환합니다.
+        찾지 못하면 -1을 반환합니다.
+        
+        Args:
+            target_date: 찾고자 하는 날짜
+            
+        Returns:
+            int: 캔들 인덱스 (0-based), 없으면 -1
+        """
+        # 이진 탐색을 사용하면 더 빠르겠지만, timestamp와 date 타입 불일치/시간 포함 여부로 인해
+        # 일단은 안전하게 뒤에서부터 탐색 (최신 날짜를 조회할 확률이 높으므로)
+        for i in range(len(self._candles) - 1, -1, -1):
+            if self._candles[i].timestamp.date() == target_date:
+                return i
+            # 이미 target_date보다 과거로 갔다면 더 이상 찾을 필요 없음
+            if self._candles[i].timestamp.date() < target_date:
+                return -1
+        return -1

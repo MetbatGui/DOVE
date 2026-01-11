@@ -1,23 +1,41 @@
 import pytest
 from datetime import date
 from decimal import Decimal
+from typing import Dict
 from src.domain.market.ticker import Ticker
 from src.domain.shared.money import Money
 from src.domain.market.candle_chart import CandleChart
 from src.domain.strategy.strategy import Strategy
-from src.domain.strategy.trading_signal import TradingSignal
+from src.domain.strategy.trading_signal import TradingSignal, SignalType
 from src.application.service.backtest_service import BacktestService
 from src.infrastructure.market.pykrx_data_provider import PyKrxDataProvider
 
 class BuyAndHoldStrategy(Strategy):
     """
-    첫 날 매수하고 계속 보유하는 단순 전략.
+    첫 날 매수하고 계속 보유하는 단순 전략 (Multi-Asset 호환).
     """
-    def analyze(self, chart: CandleChart, current_index: int) -> TradingSignal:
-        # 첫 번째 캔들(index=0)일 때만 매수
-        if current_index == 0:
-            return TradingSignal.buy(reason="Buy and Hold Init")
-        return TradingSignal.hold()
+    def analyze(self, universe_data: Dict[str, CandleChart], current_date: date) -> Dict[str, TradingSignal]:
+        signals: Dict[str, TradingSignal] = {}
+        
+        for ticker_code, chart in universe_data.items():
+            # 첫 번째 캔들(index=0)일 때만 매수
+            # 이를 위해 날짜 인덱스를 찾음
+            idx = chart.find_index_by_date(current_date)
+            if idx == 0:
+                signal = TradingSignal(
+                    type=SignalType.BUY, 
+                    ticker=chart.ticker, 
+                    reason="Buy and Hold Init"
+                )
+                signals[ticker_code] = signal
+            else:
+                signal = TradingSignal(
+                    type=SignalType.HOLD, 
+                    ticker=chart.ticker
+                )
+                signals[ticker_code] = signal
+                
+        return signals
 
 class TestBacktestService:
     def setup_method(self):
@@ -32,8 +50,9 @@ class TestBacktestService:
         """Buy & Hold 전략 백테스트 검증"""
         strategy = BuyAndHoldStrategy()
         
+        # Multi-Asset 지원을 위해 list로 전달
         result = self.service.run(
-            self.ticker, 
+            [self.ticker], 
             strategy, 
             self.start_date, 
             self.end_date, 
@@ -41,7 +60,7 @@ class TestBacktestService:
         )
         
         # 1. 결과 타입 검증
-        assert result.ticker == self.ticker
+        assert result.ticker.code == self.ticker.code
         assert result.initial_capital == self.initial_capital
         
         # 2. 거래 내역 검증 (Buy 1회)
