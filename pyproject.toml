@@ -18,6 +18,7 @@ dependencies = [
     "mplfinance>=0.12.10b0",
     "pydantic>=2.0.0",
     "pytest>=9.0.0",
+    "yfinance>=1.0",
 ]
 
 [dependency-groups]
