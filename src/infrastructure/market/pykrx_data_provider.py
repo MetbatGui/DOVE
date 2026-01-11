@@ -23,10 +23,14 @@ class PyKrxDataProvider(MarketDataProvider):
         chart = CandleChart(ticker, CandleUnit.day()) # 일단 일봉 고정
         
         for timestamp, row in df.iterrows():
+            # 데이터 정합성 보정 (High가 Open보다 낮은 경우 등 방지)
+            real_high = max(row['시가'], row['고가'], row['저가'], row['종가'])
+            real_low = min(row['시가'], row['고가'], row['저가'], row['종가'])
+
             candle = Candle(
                 open_price=Money.krw(row['시가']),
-                high_price=Money.krw(row['고가']),
-                low_price=Money.krw(row['저가']),
+                high_price=Money.krw(real_high),
+                low_price=Money.krw(real_low),
                 close_price=Money.krw(row['종가']),
                 volume=int(row['거래량']),
                 timestamp=timestamp
